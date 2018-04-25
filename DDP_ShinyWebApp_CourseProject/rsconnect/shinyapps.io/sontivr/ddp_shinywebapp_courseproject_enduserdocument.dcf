@@ -1,0 +1,11 @@
+name: ddp_shinywebapp_courseproject_enduserdocument
+title: DDP_ShinyWebApp_CourseProject_EndUserDocument
+account: sontivr
+server: shinyapps.io
+appId: 176778
+bundleId: 810204
+url: https://sontivr.shinyapps.io/ddp_shinywebapp_courseproject_enduserdocument/
+when: 1493606598.83886
+asMultiple: FALSE
+asStatic: FALSE
+ignoredFiles: server.R|ui.R

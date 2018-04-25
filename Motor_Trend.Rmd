@@ -1,0 +1,85 @@
+---
+title: "MPG for Automatic and Manual Transmission"
+author: "Ramana Sonti"
+date: "3/4/2017"
+output: pdf_document
+---
+
+##__Executive Summary (Overview)__: This report analyzes Motor Trend data to figure out if the manual or automatic transmission gets better MPG. In addition, it tries to quantifies the MPG difference between automatic and manual transmission.
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+## Exploratory Data Analysis:
+
+
+```{r mtcars, echo=TRUE, fig.height=3}
+library(datasets)
+library(stats)
+mtcars2 <- mtcars
+head(mtcars2, 2)
+str(mtcars2)
+boxplot(mpg ~ am, data = mtcars2, ylab="mpg", main="mpg vs transmission type", names=c("auto", "manual"), col = c("orange", "green"))
+```
+
+## Modeling Options:
+The box plot for the data above shows that MPG for manual transmission is better. We will model MPG as outcome and am as predictor and see if it makes sense in predicting the outcomes when am is considered alone as a predictor. We will consider models with all other variables with and without am for the sake of comparison.
+
+Please note that glm will not be considered as a model fitting option here as the outcome is neither binary nor poisson. 
+
+## Residual Plots and Diagnostics:
+````{r mtcars2, echo=TRUE}
+mtcars2$am.f <- as.factor(mtcars2$am)
+levels(mtcars2$am.f) <- c("Auto", "Manual")
+lmfit <- lm(mpg ~ am.f, data = mtcars2)
+par(mfrow = c(2, 2), oma = c(0, 0, 2, 0))
+plot(lmfit)
+summary(lmfit)
+
+lmfit0 <- lm(mpg ~ . -am -am.f, data = mtcars2)
+lmfit1 <- lm(mpg ~ . -am, data = mtcars2)
+plot(lmfit0)
+summary(lmfit0)
+```
+## Model Selection:
+````{r echo=TRUE}
+anova(lmfit, lmfit0)
+comparedf <- cbind(mtcars2[c("mpg","am.f","wt")]
+            ,data.frame(round(predict(lmfit),1))
+            ,data.frame(round(predict(lmfit0),1))
+            ,data.frame(round(predict(lmfit1),1))
+            ,data.frame(round(resid(lmfit),2))
+            ,data.frame(round(resid(lmfit0),2))
+            ,data.frame(round(resid(lmfit1),2))
+                   )
+names(comparedf) <- c("mpg","am.f","wt","fit","fit0","fit1","resid","resid0","resid1")
+```
+## Comparison of predicted values from models:
+* fit = predicted mpg for the model with am as the only predictor 
+* fit0 = predicted mpg for the model with all other variables as predictors without am (am.f) 
+* fit1 = predicted mpg for the model with all other variables including am (am.f) as predictors 
+* resid, resid0, and resid1 are corresponding residuals. 
+* Also listed wt to show that other variables do have impact on MPG for vehicles with both automatic and manual transmission. 
+````{r echo=TRUE}
+comparedf
+````
+## Confidence Intervals for model with as as the only predictor:
+```{r echo=TRUE}
+confint(lmfit)
+````
+## Confidence Intervals for model with all variables including am:
+```{r echo=TRUE}
+confint(lmfit1)
+````
+## Interpreting Coefficients: 
+The 0.05 confidence interval for the mdoel with am as the only predictor suggests that there is 3.6 to 10.8mpg gain for vehicles with manual transmission. The variance could be mostly attributed to the influence of other variables like wt. 
+
+#### Coefficeints for model with am as only predictor: 
+````{r echo=TRUE}
+coef(lmfit)
+````
+#### Coefficeints for model with all other variables as predictor including am:
+````{r echo=TRUE}
+coef(lmfit1)
+````
+## Conclusion: When considered alone as a predictor, the model (fit) predicts that the vehicles with manual transmission (24.4) perform better than with automatic (17.1). They don't compare very well with many of the observed values. However, the predicted values for the model (fit0, fit1) with all other variables considered as predictors with or without am are very close to the observed values. The contribution from manual transmission is about 2.5mpg when all variables are considered and is about 7.2mpg when they are ignored.

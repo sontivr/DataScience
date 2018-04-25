@@ -1,0 +1,120 @@
+---
+title: "Compare Exponential Distribution and Central Limit Theorem"
+author: "Ramana Sonti"
+date: "2/4/2017"
+output: pdf_document
+---
+
+### Overview:
+#####  In this report, the distribution of 40 random exponentials has been compared against the distribution of their means in an attempt to prove what Central Limit Theorem states. A set of 1000 means have been simulated and plotted to show that the distribution approximates to normal when a collection of a large enough sample set is considered in the study.
+
+### Part 1: Simulation Exercise
+###### Given: In this project you will investigate the exponential distribution in R and compare it with the  Central Limit Theorem. The exponential distribution can be simulated in R with rexp(n, lambda) where lambda is the rate parameter. The mean of exponential distribution is 1/lambda and the standard deviation is also 1/lambda. Set lambda = 0.2 for all of the simulations. You will investigate the distribution of averages of 40 exponentials. Note that you will need to do a thousand simulations.
+
+
+```{r setup, include = FALSE, echo = FALSE}
+Sys.setenv(cache.path = "cache")
+knitr::opts_chunk$set(cache=TRUE)
+
+# helper function to install/load the packages if they are missing
+usePackage <- function(p) {
+    if (!is.element(p, installed.packages()[,1]))
+        install.packages(p, dep = TRUE)
+    require(p, character.only = TRUE)
+}
+```
+
+```{r echo = FALSE}
+usePackage("pastecs")
+usePackage("stats")
+usePackage("R.utils")
+usePackage("dtplyr")
+usePackage("ggplot2")
+usePackage("grid")
+
+
+# given
+lambda <- 0.2
+mean <- sd <- 1/lambda
+nosim <- 1000
+n <- 40
+
+set.seed(10)
+rawdata <- rexp(n, lambda)
+rawdata_mean <- mean(rawdata)
+rawdata_sd <- sd(rawdata)
+rawdata_var <- var(rawdata)
+
+meansdata <- NULL
+set.seed(10)
+for (i in 1 : nosim) meansdata = c(meansdata, mean(rexp(n, lambda)))
+
+# stats on 1000 means of 40 exponentials  
+print("Stats on 1000 means :", quote = FALSE)
+stat.desc(meansdata)
+meansdata_mean <- mean(meansdata)
+meansdata_sd <- sd(meansdata)
+meansdata_var <- var(meansdata)
+
+#  Notes from mentor, Len Greski:
+#   . expected variance for the distribution of sample means is sigma^2/n
+#   . expected standard deviation is sigma/sqrt(n)
+#   . The main thrust of the assignment is to compare the raw distribution of exponentials 
+#     with the distribution of 1,000 means of 40 observations taken from an exponential distribution.
+#   . The Central Limit Theorem states that the distribution of means should be approximately normal (regardless of 
+#     whether the underlying distribution is normal), with an expected value equal to the mean of the underlying distribution, 
+#     and variance equal to the variance of the underlying distribution divided by the sample size.
+#   . The theoretical variance of an exponential distribution is 1/lambda and the expected variance of the distribution of 
+#     sample means should be (1/lambda)/(sample size).
+
+
+g1 <- ggplot(data.frame(rawdata), aes(x = rawdata)) + 
+      geom_histogram(alpha = .20, binwidth=.3, colour = "black", aes(y = ..density..)) +
+      stat_function(fun = dnorm, size = 1, args = list(mean = rawdata_mean, sd = rawdata_sd)) +
+      ggtitle("Distribution of 40 raw exponentials")
+
+g2 <- ggplot(data.frame(meansdata), aes(x = meansdata)) + 
+      geom_histogram(alpha = .20, binwidth=.3, colour = "black", aes(y = ..density..)) +
+      stat_function(fun = dnorm, size = 1, args = list(mean = meansdata_mean, sd = meansdata_sd)) +
+      ggtitle("Distribution of 1000 means of exponentials(40)")
+
+rawdata1000 <- rexp(1000,0.2)
+rawdata1000_mean <- mean(rawdata1000)
+rawdata1000_sd <- sd(rawdata1000)
+rawdata1000_var <- var(rawdata1000)
+           
+g3 <- ggplot(data.frame(rawdata1000), aes(x = rawdata1000)) + 
+      geom_histogram(alpha = .20, binwidth=.3, colour = "black", aes(y = ..density..)) +
+      stat_function(fun = dnorm, size = 1, args = list(mean = rawdata1000_mean, sd = rawdata1000_sd)) +
+      ggtitle("Distribution of 1000 raw exponentials")
+
+grid.newpage()
+grid.draw(rbind(ggplotGrob(g1), ggplotGrob(g2), ggplotGrob(g3), size = "last"))
+
+print(paste0("Mean of raw data                                    : ", rawdata_mean), quote = FALSE)
+print(paste0("Sample mean (mean of 1000 means) from simulation    : ", meansdata_mean), quote = FALSE)
+print(paste0("Theoretical mean (1/lambda)                         : ", 1/lambda), quote = FALSE)
+
+print(paste0("Variance of raw data                                : ", rawdata_var), quote = FALSE)
+print(paste0("Sample variance (var of 1000 means) from simulation : ", meansdata_var), quote = FALSE)
+print(paste0("Theoretical variance (1/(lambda^2)/n)               : ", (1/(lambda^2))/n), quote = FALSE)
+
+print(paste0("Standard Deviation of raw data                               : ", rawdata_sd), quote = FALSE)
+print(paste0("Sample Standard deviation (sd of 1000 means) from simulation : ", meansdata_sd), quote = FALSE)
+print(paste0("Theoretical standard error ((1/lambda)/sqrt(n))              : ", (1/lambda)/sqrt(n)), quote = FALSE)
+
+print(paste0("Mean of 1000 raw exponentials     : ", rawdata1000_mean), quote = FALSE)
+print(paste0("Standard Deviation of 1000 raw exponentials     : ", rawdata1000_sd), quote = FALSE)
+print(paste0("Variance of 1000 raw exponentials     : ", rawdata1000_var), quote = FALSE)
+
+```
+
+
+#### 1. Show the sample mean and compare it to the theoretical mean of the distribution.
+###### 3 From the results and the plot above, it is evident that the simulated sample mean (5.04 : means of 1000 samples) is very close to theretical mean (5).
+
+#### 2. Show how variable the sample is (via variance) and compare it to the theoretical variance of the distribution.
+###### From the results above, the sample variance (0.637 : variance of 1000 menas) is very close to theoretical variance (0.625). It shoud get much closer to the theretical variance if we increase number of simulations.
+
+#### 3. Show that the distribution is approximately normal.
+###### As shown in the third plot, the distribution is not normal even if we consider a large collection of exponentials. However, the sample means of the sample set (40) that is not so large produces the distribution that very close to normal distribution as shown in plot 2. The distribution is a classic "bell" shaped curve and is centered around population mean (~5) and is asymptotic.

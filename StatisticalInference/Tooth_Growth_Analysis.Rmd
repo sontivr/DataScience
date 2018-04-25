@@ -1,0 +1,70 @@
+---
+title: "Tooth Growth Analysis"
+author: "Ramana Sonti"
+date: "2/5/2017"
+output: pdf_document
+---
+
+### Synopsis:
+###### This report analyzes experimental data reported on tooth growth with increasing doses of vitamin C and orange joice administered to a set of 60 guinea pigs. It uses T confidence intervals and hypothesis testing to conclude that both VC and OJ help improve tooth growth with increasing doses.
+
+#### Data Description:
+###### Each of 60 guinea pigs were given one of three dose levels of vitamin C (0.5, 1, and 2 mg/day) by one of two delivery methods, (orange juice or ascorbic acid, a form of vitamin C and coded as VC).
+
+```{r setup, include = FALSE, echo = FALSE}
+Sys.setenv(cache.path = "cache")
+knitr::opts_chunk$set(cache=TRUE)
+
+# helper function to install/load the packages if they are missing
+usePackage <- function(p) {
+    if (!is.element(p, installed.packages()[,1]))
+        install.packages(p, dep = TRUE)
+    require(p, character.only = TRUE)
+}
+```
+### Exploratory Data Analysis:
+##### Load the ToothGrowth data and perform some basic exploratory data analyses
+```{r echo = FALSE}
+usePackage("datasets")
+usePackage("pastecs")
+usePackage("stats")
+usePackage("R.utils")
+usePackage("dtplyr")
+usePackage("ggplot2")
+usePackage("grid")
+usePackage("reshape2")
+
+data("ToothGrowth")
+head(ToothGrowth)
+str(ToothGrowth)
+g <- ggplot(ToothGrowth, aes(x = dose, y = len, color = supp, size = 1)) + geom_point() + geom_line()
+g
+#g <- ggplot(ToothGrowth, aes(x = dose, y = len, dose = factor(supp)))
+#g <- g + geom_line(size = 1, aes(colour = supp)) + geom_point(size =10, pch = 21, fill = "salmon", alpha = .5)
+#g
+```
+### Confidence intervals and/or hypothesis tests to compare tooth growth by supp and dose:
+```{r echo = FALSE}
+vctg05<- subset(ToothGrowth, supp=="VC" & dose == 0.5)[,1]
+vctg10<- subset(ToothGrowth, supp=="VC" & dose == 1.0)[,1] 
+vctg20<- subset(ToothGrowth, supp=="VC" & dose == 2.0)[,1] 
+ojtg05<- subset(ToothGrowth, supp=="OJ" & dose == 0.5)[,1] 
+ojtg10<- subset(ToothGrowth, supp=="OJ" & dose == 1.0)[,1]
+ojtg20<- subset(ToothGrowth, supp=="OJ" & dose == 2.0)[,1]
+```
+### Hypothesis Testing for VC:
+##### Null Hypothesis HO: VC has no effect on tooth growth
+##### Alternative Hypothesis Ha: Tooth growth increases with increasing levels of VC.
+```{r echo = TRUE}
+t.test(vctg10, vctg05, paired = FALSE, var.equal = FALSE)
+t.test(vctg20, vctg05, paired = FALSE, var.equal = FALSE)
+```
+### Hypothesis Testing for OJ: 
+##### Null Hypothesis HO: OJ has no effect on tooth growth 
+##### Alternative Hypothesis Ha: Tooth growth increases with increasing levels of OJ.
+```{r echo = TRUE}
+t.test(ojtg10, ojtg05, paired = FALSE, var.equal = FALSE)
+t.test(ojtg20, ojtg05, paired = FALSE, var.equal = FALSE)
+```
+### Conclusion:
+For both VC and Oj, null hypothesis has been rejected as the t-test results show that the sample mean corrsponding to higher dose falls outside of 95% confidence intrval.

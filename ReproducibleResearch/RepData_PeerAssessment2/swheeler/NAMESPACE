@@ -1,0 +1,12 @@
+# NAMESPACE for TMT package
+
+# Export all names
+# exportPattern("^\\.(define|extend)")
+export(SetEnvVarW)
+export(aspellCheck)
+export(aspellStem)
+
+# Import all packages listed as Imports or Depends
+import(
+  tm
+)
